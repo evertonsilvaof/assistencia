@@ -1,41 +1,35 @@
-# API de Assistência Técnica
+# Sistema de Assistência Técnica
 
-Projeto em Java com Spring Boot para cadastrar clientes, cadastrar equipamentos e abrir ordens de serviço.
+Projeto feito em Java com Spring Boot para cadastrar clientes e equipamentos e abrir ordens de serviço.
 
-## Como executar
+## Executar o projeto
 
-É necessário ter o JDK 25 e o Maven instalados.
-
-Na pasta do projeto, execute:
+Tenha o JDK 25 e o Maven instalados. Abra o terminal na pasta do projeto e execute:
 
     mvn spring-boot:run
 
-Para rodar os testes:
+Para executar os testes:
 
     mvn test
 
-O projeto usa o banco H2 em memória. Ao reiniciar a aplicação, os dados cadastrados são apagados.
+O banco usado é o H2 em memória, então os dados são apagados quando a aplicação é reiniciada.
 
 ## Endpoints
 
 ### Clientes
+- `POST /clientes`: cadastrar cliente.
+- `GET /clientes`: listar clientes.
 
-- `POST /clientes` — cadastra um cliente.
-- `GET /clientes` — lista os clientes.
-
-Exemplo de corpo para cadastrar um cliente:
+Exemplo para cadastrar:
 
     {
       "nome": "Maria da Silva",
       "ativo": true
     }
 
-O campo `ativo` pode ser omitido. Nesse caso, o cliente é cadastrado como ativo.
-
 ### Equipamentos
-
-- `POST /equipamentos` — cadastra um equipamento para um cliente.
-- `GET /equipamentos` — lista os equipamentos.
+- `POST /equipamentos`: cadastrar equipamento.
+- `GET /equipamentos`: listar equipamentos.
 
 Exemplo:
 
@@ -44,11 +38,10 @@ Exemplo:
       "clienteId": 1
     }
 
-O `clienteId` deve ser de um cliente que já existe.
+O cliente precisa estar cadastrado antes de criar o equipamento.
 
 ### Ordens de Serviço
-
-- `POST /ordens` — abre uma ordem de serviço.
+- `POST /ordens`: abrir uma ordem de serviço.
 
 Exemplo:
 
@@ -58,43 +51,16 @@ Exemplo:
       "descricaoProblema": "Notebook não liga."
     }
 
-Use os IDs que foram retornados ao cadastrar o cliente e o equipamento. Quando a ordem é aberta, ela recebe um número de protocolo, começa com o status `RECEBIDA` e tem um registro no histórico.
+Use os IDs retornados no cadastro do cliente e do equipamento. A ordem é criada com status `RECEBIDA`, recebe um número de protocolo e tem seu histórico inicial registrado.
 
-## Regras
+## Validações
 
-- O nome do cliente é obrigatório.
-- A descrição do equipamento e o cliente são obrigatórios.
-- A descrição do problema, o cliente e o equipamento são obrigatórios para abrir uma OS.
-- Não é possível abrir uma OS para um cliente inativo.
-- O equipamento deve pertencer ao cliente informado.
-- Se o cliente ou equipamento não existir, a API retorna erro 404.
-- Campos inválidos retornam erro 400 e regras de negócio não atendidas retornam erro 422.
+Não é possível abrir uma ordem para um cliente inativo, nem usar um equipamento que pertença a outro cliente. Os campos obrigatórios também são validados pela API.
 
-## Banco de dados
+## Banco H2
 
-A console do H2 fica em http://localhost:8080/h2-console enquanto a aplicação está rodando.
+Com a aplicação rodando, a console pode ser acessada em http://localhost:8080/h2-console.
 
 - JDBC URL: `jdbc:h2:mem:assistencia`
 - Usuário: `sa`
-- Senha: deixe em branco
-
-## Exemplo de teste pelo PowerShell
-
-Com a aplicação rodando, execute os comandos na ordem:
-
-    $cliente = Invoke-RestMethod -Uri "http://localhost:8080/clientes" -Method Post -ContentType "application/json" -Body '{"nome":"Maria da Silva","ativo":true}'
-
-    $equipamentoBody = @{
-      descricao = "Notebook Lenovo"
-      clienteId = $cliente.id
-    } | ConvertTo-Json
-
-    $equipamento = Invoke-RestMethod -Uri "http://localhost:8080/equipamentos" -Method Post -ContentType "application/json" -Body $equipamentoBody
-
-    $ordemBody = @{
-      clienteId = $cliente.id
-      equipamentoId = $equipamento.id
-      descricaoProblema = "Notebook não liga."
-    } | ConvertTo-Json
-
-    Invoke-RestMethod -Uri "http://localhost:8080/ordens" -Method Post -ContentType "application/json" -Body $ordemBody
+- Senha: em branco
